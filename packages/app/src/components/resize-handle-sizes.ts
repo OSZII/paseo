@@ -34,3 +34,22 @@ export function computeResizeHandleSizes({
   nextSizes[index + 1] = pairSize - nextLeftSize;
   return nextSizes;
 }
+
+interface ResolveSplitGroupSizesInput {
+  storedSizes: number[] | undefined;
+  groupSizes: number[];
+  childCount: number;
+}
+
+/**
+ * Stored sizes are keyed by group id, and a group keeps its id when panes join or leave it. A
+ * stored entry from before that change has the wrong length: the handles past its end can't move
+ * and the extra panes get a fixed width. Only trust stored sizes that still have one entry per child.
+ */
+export function resolveSplitGroupSizes({
+  storedSizes,
+  groupSizes,
+  childCount,
+}: ResolveSplitGroupSizesInput): number[] {
+  return storedSizes?.length === childCount ? storedSizes : groupSizes;
+}
