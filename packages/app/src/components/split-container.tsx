@@ -35,6 +35,7 @@ import Animated, {
 import { useTranslation } from "react-i18next";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { ResizeHandle } from "@/components/resize-handle";
+import { resolveSplitGroupSizes } from "@/components/resize-handle-sizes";
 import {
   resolveExplorerSidebarDockSizes,
   resolveExplorerSidebarWidth,
@@ -397,18 +398,6 @@ export function SplitContainer({
     },
     [workspaceKey],
   );
-  const handleCreateExplorerTab = useCallback(
-    () => onCreateNewTab({ paneId: explorerSidebarPaneId ?? undefined }),
-    [explorerSidebarPaneId, onCreateNewTab],
-  );
-  const handleMoveExplorerTabToMain = useCallback(
-    (tabId: string) => {
-      if (layout.focusedPaneId) {
-        onMoveTabToPane(tabId, layout.focusedPaneId);
-      }
-    },
-    [layout.focusedPaneId, onMoveTabToPane],
-  );
   const splitRoot = useMemo(
     () =>
       resolveSplitContainerRoot({
@@ -725,8 +714,19 @@ export function SplitContainer({
                   closingTabIds={closingTabIds}
                   onSelectTab={onSelectTabInPane}
                   onCloseTab={onCloseTab}
-                  onCreateNewTab={handleCreateExplorerTab}
-                  onMoveTabToMain={handleMoveExplorerTabToMain}
+                  onCreateNewTab={onCreateNewTab}
+                  hoveredCloseTabKey={hoveredCloseTabKey}
+                  setHoveredCloseTabKey={setHoveredCloseTabKey}
+                  onCopyResumeCommand={onCopyResumeCommand}
+                  onCopyAgentId={onCopyAgentId}
+                  onCopyTerminalId={onCopyTerminalId}
+                  onCopyFilePath={onCopyFilePath}
+                  onReloadAgent={onReloadAgent}
+                  onRenameTab={onRenameTab}
+                  onCloseTabsToLeft={onCloseTabsToLeft}
+                  onCloseTabsToRight={onCloseTabsToRight}
+                  onCloseOtherTabs={onCloseOtherTabs}
+                  onExitFocusMode={onExitFocusMode}
                   buildPaneContentModel={buildPaneContentModel}
                   onReorderTabsInPane={onReorderTabsInPane}
                   activeDragTabId={activeDragTabId}
@@ -969,8 +969,11 @@ function SplitNodeView({
     groupId ? state.splitSizesByWorkspace[workspaceKey]?.[groupId] : undefined,
   );
   const groupChildren = node.kind === "group" ? node.group.children : EMPTY_SPLIT_NODES;
-  const groupSizes =
-    storedGroupSizes ?? (node.kind === "group" ? node.group.sizes : EMPTY_SPLIT_SIZES);
+  const groupSizes = resolveSplitGroupSizes({
+    storedSizes: storedGroupSizes,
+    groupSizes: node.kind === "group" ? node.group.sizes : EMPTY_SPLIT_SIZES,
+    childCount: groupChildren.length,
+  });
   const visibleFlex = useMemo(
     () => resolveVisibleGroupFlex(groupChildren, groupSizes, maximizedPaneId),
     [groupChildren, groupSizes, maximizedPaneId],
